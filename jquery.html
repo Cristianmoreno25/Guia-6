@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jQuery - Lista simple</title>
+  <style>
+    :root { color-scheme: light; --bg:#0f172a; --panel:#111827; --accent:#22d3ee; --text:#e5e7eb; --muted:#9ca3af; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; background:#0f172a; color:var(--text); display:flex; justify-content:center; padding:48px 20px; }
+    main { width:min(640px, 100%); background:var(--panel); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:22px 24px 28px; box-shadow:0 14px 30px rgba(0,0,0,0.35); }
+    h1 { margin:0 0 8px; letter-spacing:-0.02em; }
+    p { margin:0 0 16px; color:var(--muted); }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    input { padding:10px 12px; border-radius:12px; border:2px solid #1f2937; background:#0b1224; color:#e5e7eb; flex:1; min-width:220px; outline:2px solid rgba(255,255,255,0.06); }
+    button { background:linear-gradient(135deg, #0ea5e9, #22d3ee); color:#0b1224; border:2px solid #0ea5e9; border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:0 8px 18px rgba(14,165,233,0.35); transition:transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease; }
+    button:hover { transform:translateY(-1px); box-shadow:0 12px 26px rgba(14,165,233,0.45); border-color:#22d3ee; }
+    button:active { transform:translateY(0); box-shadow:0 8px 18px rgba(14,165,233,0.32); }
+    .stats { margin-top:10px; color:var(--muted); font-size:14px; }
+    ul { margin:14px 0 0; padding-left:0; color:var(--muted); }
+    li { margin-bottom:10px; display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid #1f2937; border-radius:12px; background:rgba(14,165,233,0.06); }
+    .done { color:#6b7280; text-decoration: line-through; }
+    .ghost { background:transparent; color:#67e8f9; border:2px solid #0ea5e9; box-shadow:none; border-radius:10px; padding:8px 10px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Lista simple con jQuery</h1>
+    <p>Agregar, marcar y eliminar usando eventos y manipulación imperativa del DOM.</p>
+
+    <div class="row">
+      <input id="input-tarea" type="text" placeholder="Nueva tarea" />
+      <button id="btn-agregar" type="button">Agregar</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <ul id="lista"></ul>
+  </main>
+
+  <!-- jQuery desde CDN sin SRI para evitar bloqueos; incluye fallback -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script>if (!window.jQuery) { document.write('<script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"><\\/script>'); }</script>
+  <script>
+    $(function() {
+      let tareas = [
+        { id: 1, texto: 'Aprender jQuery', done: false },
+        { id: 2, texto: 'Manipular el DOM', done: true },
+        { id: 3, texto: 'Agregar eventos con .on()', done: false },
+        { id: 4, texto: 'Renderizar lista dinámicamente', done: false },
+        { id: 5, texto: 'Probar eliminar y marcar', done: false }
+      ];
+      const $lista = $('#lista');
+      const $input = $('#input-tarea');
+      const $stats = $('#stats');
+
+      function render() {
+        $lista.empty();
+        if (tareas.length === 0) {
+          $lista.append('<li style="color:var(--muted)">Sin tareas</li>');
+          $stats.text('Total: 0 · Hechas: 0 · Pendientes: 0');
+          return;
+        }
+        const hechas = tareas.filter(t => t.done).length;
+        $stats.text(`Total: ${tareas.length} · Hechas: ${hechas} · Pendientes: ${tareas.length - hechas}`);
+        tareas.forEach(t => {
+          const $li = $(`<li data-id="${t.id}"></li>`);
+          const $chk = $('<input type="checkbox">').prop('checked', t.done);
+          const $text = $(`<span class="${t.done ? 'done' : ''}">${t.texto || t.text}</span>`);
+          const $del = $('<button type="button" class="ghost">Eliminar</button>');
+          $li.append($chk, $text, $del);
+          $lista.append($li);
+        });
+      }
+
+      function agregar() {
+        const texto = $input.val().trim();
+        if (!texto) return;
+        tareas = [{ id: Date.now(), texto, done:false }, ...tareas];
+        $input.val('').focus();
+        render();
+      }
+
+      $('#btn-agregar').on('click', agregar);
+      $input.on('keydown', e => { if (e.key === 'Enter') agregar(); });
+
+      $lista.on('change', 'input[type="checkbox"]', function() {
+        const id = Number($(this).closest('li').data('id'));
+        tareas = tareas.map(t => t.id === id ? { ...t, done: this.checked } : t);
+        render();
+      });
+
+      $lista.on('click', 'button.ghost', function() {
+        const id = Number($(this).closest('li').data('id'));
+        tareas = tareas.filter(t => t.id !== id);
+        render();
+      });
+
+      render();
+    });
+  </script>
+</body>
+</html>

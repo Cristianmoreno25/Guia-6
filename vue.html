@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue 3 - Notas reactivas</title>
+  <style>
+    :root { color-scheme: light; --bg:#fdf6e3; --panel:#fefcf7; --accent:#f59e0b; --accent-2:#ec4899; --text:#1f2937; --muted:#6b7280; --border:rgba(0,0,0,0.08); }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; background:radial-gradient(700px 700px at 15% 20%, rgba(245,158,11,0.18), transparent 55%), radial-gradient(600px 600px at 85% 0%, rgba(236,72,153,0.18), transparent 50%), #fdf6e3; color:var(--text); display:flex; justify-content:center; padding:48px 20px; }
+    main { width:min(860px, 100%); background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px 24px 28px; box-shadow:0 10px 28px rgba(0,0,0,0.12); }
+    h1 { margin:0 0 6px; letter-spacing:-0.02em; color:#0f172a; }
+    p { margin:0 0 16px; color:var(--muted); }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    input, textarea { padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#fffaf2; color:var(--text); }
+    input { flex:1; min-width:220px; }
+    textarea { width:100%; min-height:80px; resize:vertical; }
+    button { background:var(--accent); color:#1f2937; border:none; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(245,158,11,0.35); transition:transform 120ms ease, box-shadow 120ms ease; }
+    button:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(245,158,11,0.45); }
+    button:active { transform:translateY(0); box-shadow:0 6px 16px rgba(245,158,11,0.32); }
+    .stats { display:flex; gap:12px; color:var(--muted); font-size:14px; margin-top:10px; flex-wrap:wrap; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:12px; margin-top:14px; }
+    .card { background:#fffaf2; border:1px solid var(--border); border-radius:12px; padding:12px 14px; box-shadow:0 10px 18px rgba(0,0,0,0.08); }
+    .card h3 { margin:0 0 6px; color:#0f172a; }
+    .card p { margin:0 0 8px; color:var(--muted); }
+    .tag { display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.4); color:var(--accent-2); font-size:12px; }
+    .actions { display:flex; gap:8px; margin-top:8px; }
+    .ghost { background:transparent; color:var(--muted); border:1px solid var(--border); box-shadow:none; }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <h1>Vue 3 · Notas reactivas</h1>
+    <p>Ejemplo con Composition API: creación, filtrado básico y borrado de notas.</p>
+
+    <div class="row">
+      <input v-model="titulo" placeholder="Titulo" />
+      <input v-model="tag" placeholder="Etiqueta" style="max-width:200px;" />
+      <button @click="agregar">Agregar nota</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <textarea v-model="contenido" placeholder="Contenido..."></textarea>
+    </div>
+
+    <div class="stats">
+      <span>Total: {{ notas.length }}</span>
+      <span>Filtradas: {{ filtradas.length }}</span>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <input v-model="busqueda" placeholder="Buscar por titulo o etiqueta" />
+      <button class="ghost" @click="limpiar">Limpiar</button>
+    </div>
+
+    <div class="grid">
+      <div class="card" v-for="nota in filtradas" :key="nota.id">
+        <h3>{{ nota.titulo }}</h3>
+        <p>{{ nota.contenido }}</p>
+        <span class="tag">{{ nota.tag || 'Sin etiqueta' }}</span>
+        <div class="actions">
+          <button class="ghost" @click="eliminar(nota.id)">Eliminar</button>
+        </div>
+      </div>
+      <p v-if="filtradas.length === 0" style="color:var(--muted);">Sin notas.</p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp, ref, computed } = Vue;
+    createApp({
+      setup() {
+        const titulo = ref('');
+        const contenido = ref('');
+        const tag = ref('');
+        const busqueda = ref('');
+        const notas = ref([
+          { id: 1, titulo: 'Idea inicial', contenido: 'Explorar conceptos de Vue 3.', tag: 'vue' },
+          { id: 2, titulo: 'Tareas', contenido: 'Crear notas con Composition API.', tag: 'demo' }
+        ]);
+
+        const filtradas = computed(() => {
+          const term = busqueda.value.toLowerCase();
+          return notas.value.filter(n =>
+            n.titulo.toLowerCase().includes(term) ||
+            (n.tag || '').toLowerCase().includes(term)
+          );
+        });
+
+        const agregar = () => {
+          const t = titulo.value.trim();
+          const c = contenido.value.trim();
+          if (!t || !c) return;
+          notas.value = [
+            { id: Date.now(), titulo: t, contenido: c, tag: tag.value.trim() },
+            ...notas.value
+          ];
+          titulo.value = '';
+          contenido.value = '';
+          tag.value = '';
+        };
+
+        const eliminar = (id) => {
+          notas.value = notas.value.filter(n => n.id !== id);
+        };
+
+        const limpiar = () => { busqueda.value = ''; };
+
+        return { titulo, contenido, tag, busqueda, notas, filtradas, agregar, eliminar, limpiar };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
