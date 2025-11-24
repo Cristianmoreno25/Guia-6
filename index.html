@@ -80,7 +80,7 @@
       border-radius: 10px;
       position: relative;
     }
-    .viewport svg { transform-origin: 0 0; transition: transform 120ms ease; }
+    .viewport img { transform-origin: 0 0; transition: transform 120ms ease; position: absolute; top: 0; left: 0; }
   </style>
 </head>
 <body>
@@ -112,7 +112,7 @@
       <a href="#" id="btn-mapa" class="map-card">
         <div>
           <h2>Mapa conceptual · Design Thinking</h2>
-          <p>Visualiza el mapa en SVG y navega con zoom, pan y arrastre.</p>
+          <p>Visualiza el mapa en PNG y navega con zoom, pan y arrastre.</p>
         </div>
         <span class="tag">Abrir mapa</span>
       </a>
@@ -169,43 +169,36 @@
 
   <script>
     (() => {
-      const svgPath = './mapa.svg'; // ajusta al nombre real
+      const imgPath = './mapa.png'; // ajusta al nombre real
       const btn = document.getElementById('btn-mapa');
       const modal = document.getElementById('mapa-modal');
       const vista = document.getElementById('mapa-vista');
-      let svgEl = null;
+      let imgEl = null;
       let scale = 1;
       let pan = { x: 0, y: 0 };
       let dragging = false;
       let start = { x: 0, y: 0 };
 
       const applyTransform = () => {
-        if (svgEl) svgEl.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
+        if (imgEl) imgEl.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
       };
 
-      const loadSvg = () => {
-        if (svgEl) return;
-        fetch(svgPath)
-          .then(r => r.text())
-          .then(txt => {
-            vista.innerHTML = txt;
-            svgEl = vista.querySelector('svg');
-            if (svgEl) {
-              svgEl.style.transformOrigin = '0 0';
-              svgEl.style.transition = 'transform 120ms ease';
-              applyTransform();
-            } else {
-              vista.textContent = 'No se encontro el SVG.';
-            }
-          })
-          .catch(() => { vista.textContent = 'No se pudo cargar el mapa.'; });
+      const loadImage = () => {
+        if (imgEl) return;
+        imgEl = new Image();
+        imgEl.onload = applyTransform;
+        imgEl.onerror = () => { vista.textContent = 'No se pudo cargar la imagen.'; };
+        imgEl.src = imgPath;
+        imgEl.alt = 'Mapa conceptual';
+        vista.innerHTML = '';
+        vista.appendChild(imgEl);
       };
 
-      const showModal = () => { modal.style.display = 'flex'; modal.setAttribute('aria-hidden', 'false'); loadSvg(); };
+      const showModal = () => { modal.style.display = 'flex'; modal.setAttribute('aria-hidden', 'false'); loadImage(); };
       const hideModal = () => { modal.style.display = 'none'; modal.setAttribute('aria-hidden', 'true'); };
 
       vista.addEventListener('mousedown', (e) => {
-        if (!svgEl) return;
+        if (!imgEl) return;
         dragging = true;
         start = { x: e.clientX - pan.x, y: e.clientY - pan.y };
         vista.style.cursor = 'grabbing';
@@ -221,7 +214,7 @@
         vista.style.cursor = 'default';
       });
       vista.addEventListener('wheel', (e) => {
-        if (!svgEl) return;
+        if (!imgEl) return;
         e.preventDefault();
         const delta = e.deltaY < 0 ? 0.1 : -0.1;
         scale = Math.min(Math.max(scale + delta, 0.2), 5);
