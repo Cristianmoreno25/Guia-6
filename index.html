@@ -45,6 +45,11 @@
     .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; min-width: 140px; }
     .stat strong { display: block; font-size: 1.2rem; }
     .stat span { color: var(--muted); font-size: 0.9rem; }
+    .map-section { margin: 10px 0 28px; }
+    .map-card { display:flex; align-items:center; justify-content:space-between; gap:14px; background: var(--panel-2); border:1px solid var(--border); border-radius:16px; padding:16px 18px; text-decoration:none; color:inherit; box-shadow:0 14px 30px rgba(0,0,0,0.28); transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease; }
+    .map-card:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(0,0,0,0.32); border-color: rgba(34,211,238,0.5); }
+    .map-card h2 { margin:0 0 6px; letter-spacing:-0.01em; }
+    .map-card p { margin:0; color: var(--muted); }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
     .card { position: relative; overflow: hidden; background: var(--panel-2); border: 1px solid var(--border); border-radius: 16px; padding: 18px 18px 20px; text-decoration: none; color: inherit; box-shadow: 0 14px 30px rgba(0,0,0,0.35); transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
     .card:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(0,0,0,0.42); border-color: rgba(34,211,238,0.5); }
@@ -56,24 +61,6 @@
     .floating { position: fixed; right: 18px; bottom: 18px; display: grid; gap: 8px; max-width: 280px; z-index: 10; }
     .toast { background: rgba(12, 18, 36, 0.92); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 12px; box-shadow: 0 12px 24px rgba(0,0,0,0.4); font-size: 0.95rem; }
     .toast small { display:block; color: var(--muted); margin-top: 4px; }
-    .map-section { margin: 10px 0 28px; }
-    .map-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 18px;
-      text-decoration: none;
-      color: inherit;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.28);
-      transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-    }
-    .map-card:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(0,0,0,0.32); border-color: rgba(34,211,238,0.5); }
-    .map-card h2 { margin: 0 0 6px; letter-spacing: -0.01em; }
-    .map-card p { margin: 0; color: var(--muted); }
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
     .modal { background: #0b1224; border: 1px solid var(--border); border-radius: 14px; width: min(1100px, 95vw); height: min(820px, 90vh); display: flex; flex-direction: column; padding: 12px; gap: 10px; box-shadow: 0 18px 40px rgba(0,0,0,0.55); }
     .modal .controls { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
@@ -102,7 +89,7 @@
       <span class="pill">Frontend gallery</span>
       <div>
         <h1>Demostraciones de librerias JavaScript</h1>
-        <p class="lead">Explora ejemplos rapidos en Angular, React, Vue y jQuery. Cada demo se carga de forma independiente para que compares estilos y APIs.</p>
+        <p class="lead">Explora ejemplos rapidos en React, Vue y jQuery. Cada demo se carga de forma independiente para que compares estilos y APIs.</p>
       </div>
     </header>
 
@@ -182,7 +169,7 @@
 
   <script>
     (() => {
-      const svgPath = 'mapa.svg'; // ajusta al nombre real del archivo
+      const svgPath = './mapa.svg'; // ajusta al nombre real
       const btn = document.getElementById('btn-mapa');
       const modal = document.getElementById('mapa-modal');
       const vista = document.getElementById('mapa-vista');
@@ -193,9 +180,7 @@
       let start = { x: 0, y: 0 };
 
       const applyTransform = () => {
-        if (svgEl) {
-          svgEl.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
-        }
+        if (svgEl) svgEl.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
       };
 
       const loadSvg = () => {
@@ -213,21 +198,11 @@
               vista.textContent = 'No se encontro el SVG.';
             }
           })
-          .catch(() => {
-            vista.textContent = 'No se pudo cargar el mapa.';
-          });
+          .catch(() => { vista.textContent = 'No se pudo cargar el mapa.'; });
       };
 
-      const showModal = () => {
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        loadSvg();
-      };
-
-      const hideModal = () => {
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden', 'true');
-      };
+      const showModal = () => { modal.style.display = 'flex'; modal.setAttribute('aria-hidden', 'false'); loadSvg(); };
+      const hideModal = () => { modal.style.display = 'none'; modal.setAttribute('aria-hidden', 'true'); };
 
       vista.addEventListener('mousedown', (e) => {
         if (!svgEl) return;
@@ -253,10 +228,7 @@
         applyTransform();
       }, { passive: false });
 
-      btn?.addEventListener('click', (e) => {
-        e.preventDefault();
-        showModal();
-      });
+      btn?.addEventListener('click', (e) => { e.preventDefault(); showModal(); });
       document.getElementById('cerrar')?.addEventListener('click', hideModal);
       document.getElementById('zoom-in')?.addEventListener('click', () => { scale = Math.min(scale + 0.1, 5); applyTransform(); });
       document.getElementById('zoom-out')?.addEventListener('click', () => { scale = Math.max(scale - 0.1, 0.2); applyTransform(); });
